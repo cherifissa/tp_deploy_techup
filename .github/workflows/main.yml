@@ -1,0 +1,45 @@
+name: Deploy API to EC2 (build on server)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # 1. Copier les fichiers du projet vers EC2
+    - name: Copy project files to EC2
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "."
+        target: "/home/ubuntu/todo-api"
+
+    # 2. Construire et déployer le conteneur directement SUR EC2
+    - name: Build and deploy on EC2
+      uses: appleboy/ssh-action@v1.2.0
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd ~/todo-api
+
+          echo "Stop ancien conteneur"
+          docker stop todo-api || true
+          docker rm todo-api || true
+
+          echo "Construction de la nouvelle image Docker"
+          docker build -t todo-api .
+
+          echo "Lancement du conteneur"
+          docker run -d --name todo-api -p 80:5000 todo-api
+
+          echo "✔ Déploiement terminé avec succès !"
