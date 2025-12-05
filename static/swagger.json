@@ -1,0 +1,228 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Todo API",
+    "description": "API REST pour gérer une liste de tâches (todos) avec SQLite",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5050",
+      "description": "Serveur de développement local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Todos",
+      "description": "Opérations CRUD pour les tâches"
+    }
+  ],
+  "paths": {
+    "/api/v1/todos": {
+      "get": {
+        "tags": ["Todos"],
+        "summary": "Récupérer toutes les tâches",
+        "description": "Retourne la liste complète de toutes les tâches enregistrées dans la base de données",
+        "operationId": "getTodos",
+        "responses": {
+          "200": {
+            "description": "Liste des tâches récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Todo"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "task": "Faire les courses"
+                  },
+                  {
+                    "id": 2,
+                    "task": "Réviser pour l'examen"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Todos"],
+        "summary": "Créer une nouvelle tâche",
+        "description": "Ajoute une nouvelle tâche à la base de données",
+        "operationId": "addTodo",
+        "requestBody": {
+          "description": "Détails de la tâche à créer",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TodoInput"
+              },
+              "example": {
+                "task": "Acheter du lait"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tâche créée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                },
+                "example": {
+                  "message": "Tâche ajoutée"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requête invalide - données manquantes ou incorrectes"
+          }
+        }
+      }
+    },
+    "/api/v1/todos/{id}": {
+      "put": {
+        "tags": ["Todos"],
+        "summary": "Mettre à jour une tâche existante",
+        "description": "Modifie le contenu d'une tâche existante identifiée par son ID",
+        "operationId": "updateTodo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID unique de la tâche à modifier",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "description": "Nouvelles données de la tâche",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TodoInput"
+              },
+              "example": {
+                "task": "Acheter du pain et du lait"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tâche mise à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                },
+                "example": {
+                  "message": "Tâche mise à jour"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tâche non trouvée"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Todos"],
+        "summary": "Supprimer une tâche",
+        "description": "Supprime définitivement une tâche de la base de données",
+        "operationId": "deleteTodo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID unique de la tâche à supprimer",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tâche supprimée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                },
+                "example": {
+                  "message": "Tâche supprimée"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tâche non trouvée"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Todo": {
+        "type": "object",
+        "required": ["id", "task"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Identifiant unique de la tâche",
+            "example": 1
+          },
+          "task": {
+            "type": "string",
+            "description": "Description de la tâche à accomplir",
+            "example": "Faire les courses"
+          }
+        }
+      },
+      "TodoInput": {
+        "type": "object",
+        "required": ["task"],
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "Description de la tâche",
+            "minLength": 1,
+            "example": "Acheter du lait"
+          }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Message de confirmation",
+            "example": "Opération réussie"
+          }
+        }
+      }
+    }
+  }
+}

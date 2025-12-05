@@ -1,0 +1,87 @@
+### Todo API - Tests REST
+### Base URL
+@baseUrl = http://localhost:5050/api/v1
+
+### 1. Récupérer toutes les tâches (GET)
+GET {{baseUrl}}/todos
+Content-Type: application/json
+
+###
+
+### 2. Créer une nouvelle tâche (POST)
+POST {{baseUrl}}/todos
+Content-Type: application/json
+
+{
+  "task": "Faire les courses"
+}
+
+###
+
+### 3. Créer une autre tâche
+POST {{baseUrl}}/todos
+Content-Type: application/json
+
+{
+  "task": "Réviser pour l'examen"
+}
+
+###
+
+### 4. Créer une troisième tâche
+POST {{baseUrl}}/todos
+Content-Type: application/json
+
+{
+  "task": "Appeler le dentiste"
+}
+
+###
+
+### 5. Mettre à jour une tâche (PUT)
+# Remplacez {id} par l'ID réel de la tâche
+PUT {{baseUrl}}/todos/1
+Content-Type: application/json
+
+{
+  "task": "Faire les courses au supermarché"
+}
+
+###
+
+### 6. Mettre à jour la deuxième tâche
+PUT {{baseUrl}}/todos/2
+Content-Type: application/json
+
+{
+  "task": "Réviser pour l'examen de mathématiques"
+}
+
+###
+
+### 7. Supprimer une tâche (DELETE)
+# Remplacez {id} par l'ID réel de la tâche à supprimer
+DELETE {{baseUrl}}/todos/3
+
+###
+
+### 8. Vérifier les tâches restantes
+GET {{baseUrl}}/todos
+Content-Type: application/json
+
+###
+
+### 9. Test - Créer une tâche vide (devrait fonctionner mais créer une tâche vide)
+POST {{baseUrl}}/todos
+Content-Type: application/json
+
+{
+  "task": ""
+}
+
+###
+
+### 10. Supprimer la tâche vide
+DELETE {{baseUrl}}/todos/4
+
+###

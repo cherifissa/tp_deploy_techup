@@ -36,7 +36,7 @@ jobs:
             docker stop todo-api || true
             docker rm todo-api || true
 
-            echo "🔨 Construction de la nouvelle image Docker"
+            echo "Construction de la nouvelle image Docker"
             docker build -t todo-api .
 
             echo "Lancement du conteneur"

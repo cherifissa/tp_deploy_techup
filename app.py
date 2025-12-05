@@ -1,8 +1,25 @@
 from flask import Flask, request, jsonify
+from flask_swagger_ui import get_swaggerui_blueprint
+from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
+CORS(app)
 DB = "todos.db"
+
+# Configuration Swagger
+SWAGGER_URL = '/api/docs'
+API_URL = '/static/swagger.json'
+
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "Todo API"
+    }
+)
+
+app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
 def init_db():
     conn = sqlite3.connect(DB)
@@ -11,7 +28,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-@app.route("/todos", methods=["GET"])
+@app.route("/api/v1/todos", methods=["GET"])
 def get_todos():
     conn = sqlite3.connect(DB)
     c = conn.cursor()
@@ -22,7 +39,7 @@ def get_todos():
     todos = [{"id": r[0], "task": r[1]} for r in rows]
     return jsonify(todos)
 
-@app.route("/todos", methods=["POST"])
+@app.route("/api/v1/todos", methods=["POST"])
 def add_todo():
     data = request.get_json()
     task = data.get("task", "")
@@ -35,7 +52,7 @@ def add_todo():
 
     return jsonify({"message": "Tâche ajoutée"}), 201
 
-@app.route("/todos/<int:id>", methods=["PUT"])
+@app.route("/api/v1/todos/<int:id>", methods=["PUT"])
 def update_todo(id):
     data = request.get_json()
     task = data.get("task", "")
@@ -48,7 +65,7 @@ def update_todo(id):
 
     return jsonify({"message": "Tâche mise à jour"})
 
-@app.route("/todos/<int:id>", methods=["DELETE"])
+@app.route("/api/v1/todos/<int:id>", methods=["DELETE"])
 def delete_todo(id):
     conn = sqlite3.connect(DB)
     c = conn.cursor()
