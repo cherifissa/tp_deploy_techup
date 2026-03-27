@@ -30,13 +30,13 @@ pip install -r requirements.txt
 python app.py
 ```
 
-API locale: `http://localhost:5050`
+API locale: `http://localhost:9090`
 
 ## Lancer en local (Docker)
 
 ```bash
 docker build -t todo-api .
-docker run --rm -p 5050:5050 -e DB_PATH=/app/data/todos.db -v todo_api_data:/app/data todo-api
+docker run --rm -p 9090:9090 -e PORT=9090 -e DB_PATH=/app/data/todos.db -v todo_api_data:/app/data todo-api
 ```
 
 ## Endpoints principaux
@@ -51,7 +51,7 @@ docker run --rm -p 5050:5050 -e DB_PATH=/app/data/todos.db -v todo_api_data:/app
 Exemple:
 
 ```bash
-curl http://localhost:5050/api/v1/todos
+curl http://localhost:9090/api/v1/todos
 ```
 
 ## Tests

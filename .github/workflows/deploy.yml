@@ -86,13 +86,14 @@ jobs:
             docker volume create todo_api_data || true
 
             echo "Starting container"
-            docker run -d --name todo-api --restart unless-stopped -p 80:5050 \
+            docker run -d --name todo-api --restart unless-stopped -p 9090:9090 \
+              -e PORT=9090 \
               -e DB_PATH=/app/data/todos.db \
               -v todo_api_data:/app/data \
               todo-api 
 
             echo "Health check"
             sleep 5
-            curl -fsS http://localhost/health
+            curl -fsS http://localhost:9090/health
 
             echo "Deployment completed successfully"

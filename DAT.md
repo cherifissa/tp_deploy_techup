@@ -51,7 +51,7 @@ flowchart LR
   - Sert Swagger via `/api/docs`
 - `Dockerfile`
   - Build de l'image Python
-  - Demarrage de l'app sur le port 5050
+  - Demarrage de l'app sur le port 9090
 - `.github/workflows/deploy.yml`
   - Pipeline CI/CD complet (test, build, deploy)
 - `tests/test_app.py`
@@ -106,14 +106,14 @@ Variables d'environnement importantes:
 
 Ports:
 
-- Application dans le conteneur: `5050`
-- Exposition publique sur EC2: `80`
+- Application dans le conteneur: `9090`
+- Exposition publique sur EC2: `9090`
 
 URL de production:
 
-- API: `http://<EC2_HOST>/api/v1/todos`
-- Health check: `http://<EC2_HOST>/health`
-- Swagger: `http://<EC2_HOST>/api/docs`
+- API: `http://<EC2_HOST>:9090/api/v1/todos`
+- Health check: `http://<EC2_HOST>:9090/health`
+- Swagger: `http://<EC2_HOST>:9090/api/docs`
 
 Identifiants:
 
@@ -134,7 +134,7 @@ python app.py
 
 ```bash
 docker build -t todo-api .
-docker run --rm -p 5050:5050 -e DB_PATH=/app/data/todos.db -v todo_api_data:/app/data todo-api
+docker run --rm -p 9090:9090 -e PORT=9090 -e DB_PATH=/app/data/todos.db -v todo_api_data:/app/data todo-api
 ```
 
 ### Tests
