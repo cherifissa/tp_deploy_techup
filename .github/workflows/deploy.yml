@@ -1,18 +1,61 @@
-name: Deploy API to EC2 (build on server)
+name: CI/CD Todo API
 
 on:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
-  deploy:
+  test:
+    name: Tests API
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 1. Copier les fichiers du projet vers EC2
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest -q
+
+  build-image:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t todo-api:ci .
+
+  deploy:
+    name: Deploy on EC2
+    runs-on: ubuntu-latest
+    needs: [test, build-image]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate deploy secrets
+        run: |
+          test -n "${{ secrets.EC2_HOST }}"
+          test -n "${{ secrets.EC2_USER }}"
+          test -n "${{ secrets.SSH_PRIVATE_KEY }}"
+
       - name: Copy project files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -22,7 +65,6 @@ jobs:
           source: "."
           target: "/home/ubuntu/todo-api"
 
-      # 2. Construire et déployer le conteneur directement SUR EC2
       - name: Build and deploy on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -32,14 +74,24 @@ jobs:
           script: |
             cd ~/todo-api
 
-            echo "Arrêt de l'ancien conteneur"
+            echo "Stopping previous container"
             docker stop todo-api || true
             docker rm todo-api || true
 
-            echo "Construction de la nouvelle image Docker"
+            echo "Building new Docker image"
             docker build -t todo-api .
 
-            echo "Lancement du conteneur"
-            docker run -d --name todo-api -p 80:5050 todo-api
+            echo "Creating persistent volume"
+            docker volume create todo_api_data || true
 
-            echo "Déploiement terminé avec succès !"
+            echo "Starting container"
+            docker run -d --name todo-api --restart unless-stopped -p 80:5050 \
+              -e DB_PATH=/app/data/todos.db \
+              -v todo_api_data:/app/data \
+              todo-api
+
+            echo "Health check"
+            sleep 5
+            curl -fsS http://localhost/health
+
+            echo "Deployment completed successfully"

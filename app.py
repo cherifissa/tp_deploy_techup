@@ -2,10 +2,12 @@ from flask import Flask, request, jsonify
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_cors import CORS
 import sqlite3
+import os
+from pathlib import Path
 
 app = Flask(__name__)
 CORS(app)
-DB = "todos.db"
+DB = os.getenv("DB_PATH", "data/todos.db")
 
 # Configuration Swagger
 SWAGGER_URL = '/api/docs'
@@ -21,8 +23,17 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
+
+def ensure_db_directory():
+    Path(DB).parent.mkdir(parents=True, exist_ok=True)
+
+
+def get_connection():
+    ensure_db_directory()
+    return sqlite3.connect(DB)
+
 def init_db():
-    conn = sqlite3.connect(DB)
+    conn = get_connection()
     c = conn.cursor()
     c.execute("CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY, task TEXT)")
     conn.commit()
@@ -30,7 +41,7 @@ def init_db():
 
 @app.route("/api/v1/todos", methods=["GET"])
 def get_todos():
-    conn = sqlite3.connect(DB)
+    conn = get_connection()
     c = conn.cursor()
     c.execute("SELECT * FROM todos")
     rows = c.fetchall()
@@ -41,10 +52,12 @@ def get_todos():
 
 @app.route("/api/v1/todos", methods=["POST"])
 def add_todo():
-    data = request.get_json()
-    task = data.get("task", "")
+    data = request.get_json(silent=True) or {}
+    task = str(data.get("task", "")).strip()
+    if not task:
+        return jsonify({"error": "Le champ 'task' est obligatoire"}), 400
 
-    conn = sqlite3.connect(DB)
+    conn = get_connection()
     c = conn.cursor()
     c.execute("INSERT INTO todos (task) VALUES (?)", (task,))
     conn.commit()
@@ -54,10 +67,12 @@ def add_todo():
 
 @app.route("/api/v1/todos/<int:id>", methods=["PUT"])
 def update_todo(id):
-    data = request.get_json()
-    task = data.get("task", "")
+    data = request.get_json(silent=True) or {}
+    task = str(data.get("task", "")).strip()
+    if not task:
+        return jsonify({"error": "Le champ 'task' est obligatoire"}), 400
 
-    conn = sqlite3.connect(DB)
+    conn = get_connection()
     c = conn.cursor()
     c.execute("UPDATE todos SET task=? WHERE id=?", (task, id))
     conn.commit()
@@ -67,13 +82,22 @@ def update_todo(id):
 
 @app.route("/api/v1/todos/<int:id>", methods=["DELETE"])
 def delete_todo(id):
-    conn = sqlite3.connect(DB)
+    conn = get_connection()
     c = conn.cursor()
     c.execute("DELETE FROM todos WHERE id=?", (id,))
     conn.commit()
     conn.close()
 
     return jsonify({"message": "Tâche supprimée"})
+
+
+@app.route("/health", methods=["GET"])
+def health_check():
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT 1")
+    conn.close()
+    return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
     init_db()

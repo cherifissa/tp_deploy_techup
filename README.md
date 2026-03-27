@@ -1,102 +1,107 @@
-# Todo API
+# Todo API - Deployment Project
 
-Une petite API REST toute simple pour gérer des tâches. Faite avec Flask et SQLite.
+API REST Todo construite avec Flask et SQLite, conteneurisee avec Docker et deployee automatiquement via GitHub Actions.
 
-## C'est quoi ?
+## Objectif
 
-Bah c'est juste une todo list quoi. Tu peux ajouter des tâches, les modifier, les supprimer. Rien de fou.
+Valider une chaine complete de mise en production:
 
-## Installation
+- versioning du code avec Git/GitHub
+- conteneurisation Docker
+- CI/CD automatique (test, build, deploy)
+- documentation technique (DAT)
 
-T'as besoin de Python 3 installé sur ta machine.
+## Stack technique
+
+- Python 3.10
+- Flask
+- SQLite
+- Swagger UI
+- Docker
+- GitHub Actions
+- Deploiement EC2 (via SSH)
+
+## Lancer en local (Python)
 
 ```bash
-# Clone le projet
-git clone https://github.com/cherifissa/tp_deploy_techup.git
-cd tp_deploy_techup
-
-# Crée un environnement virtuel (recommandé)
 python3 -m venv .venv
 source .venv/bin/activate
-
-# Installe les dépendances
 pip install -r requirements.txt
-```
-
-## Lancer l'application
-
-```bash
 python app.py
 ```
 
-L'API tourne sur http://localhost:5050
+API locale: `http://localhost:5050`
 
-## Comment ça marche
+## Lancer en local (Docker)
 
-### Voir toutes les tâches
+```bash
+docker build -t todo-api .
+docker run --rm -p 5050:5050 -e DB_PATH=/app/data/todos.db -v todo_api_data:/app/data todo-api
+```
+
+## Endpoints principaux
+
+- `GET /api/v1/todos`
+- `POST /api/v1/todos`
+- `PUT /api/v1/todos/{id}`
+- `DELETE /api/v1/todos/{id}`
+- `GET /health`
+- `GET /api/docs` (Swagger)
+
+Exemple:
 
 ```bash
 curl http://localhost:5050/api/v1/todos
 ```
 
-### Ajouter une tâche
+## Tests
 
 ```bash
-curl -X POST http://localhost:5050/api/v1/todos \
-  -H "Content-Type: application/json" \
-  -d '{"task": "Faire les courses"}'
+pytest -q
 ```
 
-### Modifier une tâche
+## CI/CD
 
-```bash
-curl -X PUT http://localhost:5050/api/v1/todos/1 \
-  -H "Content-Type: application/json" \
-  -d '{"task": "Faire les courses au Carrefour"}'
-```
+Workflow GitHub Actions: `.github/workflows/deploy.yml`
 
-### Supprimer une tâche
+Pipeline:
 
-```bash
-curl -X DELETE http://localhost:5050/api/v1/todos/1
-```
+1. Tests Python (`pytest`)
+2. Build Docker
+3. Deploy sur EC2 (uniquement sur `main`)
+4. Verification `/health`
 
-## Documentation Swagger
+Secrets GitHub requis pour le deploy:
 
-Y'a une interface sympa avec Swagger pour tester l'API directement dans le navigateur :
+- `EC2_HOST`
+- `EC2_USER`
+- `SSH_PRIVATE_KEY`
 
-👉 http://localhost:5050/api/docs
+## DAT
 
-Tu peux cliquer sur les endpoints et les tester direct, c'est bien pratique.
+Le document d'architecture technique est disponible ici:
 
-## Fichier de test
+- `DAT.md`
 
-Si tu utilises VS Code avec l'extension REST Client, ouvre `api_tests.rest` et clique sur "Send Request" pour tester les endpoints. C'est plus rapide que de taper les curl à la main.
+Il contient:
 
-## Technologies utilisées
-
-- Flask - le framework web
-- SQLite - la base de données (un simple fichier)
-- Swagger UI - pour la doc interactive
-- Flask-CORS - pour éviter les problèmes de CORS
+- description generale
+- schemas d'architecture et de flux
+- pipeline CI/CD explique
+- choix techniques justifies
+- informations d'acces a l'application
 
 ## Structure du projet
 
-```
+```text
 .
-├── app.py              # Le code de l'API
-├── requirements.txt    # Les dépendances Python
-├── Dockerfile          # Pour Docker si tu veux
-├── api_tests.rest      # Fichier de tests REST
-├── static/
-│   └── swagger.json    # Configuration Swagger
-└── todos.db            # La base de données (créée automatiquement)
+├── .github/workflows/deploy.yml
+├── DAT.md
+├── Dockerfile
+├── README.md
+├── api_tests.rest
+├── app.py
+├── requirements.txt
+├── static/swagger.json
+└── tests/test_app.py
 ```
-
-## Notes
-
-- La base de données SQLite est créée automatiquement au premier lancement
-- Les données sont sauvegardées dans `todos.db`
-- Si tu veux repartir de zéro, supprime juste `todos.db`
-
-Voilà, c'est tout !
