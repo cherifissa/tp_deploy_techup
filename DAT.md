@@ -27,7 +27,7 @@ flowchart LR
     A[Utilisateur] -->|HTTP| B[Serveur EC2]
     B --> C[Conteneur Docker todo-api]
     C --> D[(SQLite todos.db)]
-    C --> E[/api/docs Swagger UI]
+  C --> E["/api/docs Swagger UI"]
 ```
 
 ### 2.2 Flux de deploiement
