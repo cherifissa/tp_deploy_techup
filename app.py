@@ -30,12 +30,12 @@ def ensure_db_directory():
 
 def get_connection():
     ensure_db_directory()
-    return sqlite3.connect(DB)
+    conn = sqlite3.connect(DB)
+    conn.execute("CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY, task TEXT)")
+    return conn
 
 def init_db():
     conn = get_connection()
-    c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY, task TEXT)")
     conn.commit()
     conn.close()
 

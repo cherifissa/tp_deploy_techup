@@ -10,8 +10,8 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5050",
-      "description": "Serveur de développement local"
+      "url": "http://localhost:9090",
+      "description": "Serveur local"
     }
   ],
   "tags": [
@@ -178,6 +178,34 @@
           },
           "404": {
             "description": "Tâche non trouvée"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Vérifier l'état de l'API",
+        "description": "Retourne l'état de disponibilité du service",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "Service disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    }
+                  }
+                },
+                "example": {
+                  "status": "ok"
+                }
+              }
+            }
           }
         }
       }
